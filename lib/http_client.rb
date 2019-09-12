@@ -13,7 +13,7 @@ module TransactionDetail
     CONSUMER_KEY = 'WF_GATEWAY_CONSUMER_KEY'
     CONSUMER_SECRET = 'WF_GATEWAY_CONSUMER_SECRET'
 
-    def initialize(creds)
+    def initialize()
       uri = ENV[API_BASE_URL]
       scope = ENV[TRANSACTION_DETAIL_SCOPE]
       entity_id = ENV[ENTITY_ID]
@@ -25,19 +25,22 @@ module TransactionDetail
       validate_required_args({
         'uri' => uri,
         'scope' => scope,
-        'creds' => creds,
         'entity_id' => entity_id,
         'application_id' => application_id,
+        'consumer_key' = consumer_key,
+        'consumer_secret' = consumer_secret,
+        'cert' => cert,
+        'key' => key
       })
       @scope = scope
       @base_uri = URI(uri)
-      @creds = creds
+      @creds = {:username => consumer_key, :password => consumer_secret}
       @application_id = application_id
       @entity_id = entity_id
       @authenticated = false
     end
 
-    def refresh_token(creds)
+    def refresh_token()
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.read_timeout = 15 #seconds
@@ -62,7 +65,7 @@ module TransactionDetail
 
     def add_required_headers(request)
       unless @authenticated
-        refresh_token(@creds)
+        refresh_token()
       end
       request["Authorization"] = "Bearer #{@token}"
       request["client-request-id"] = @application_id
@@ -102,6 +105,8 @@ module TransactionDetail
       errors << "WF_GATEWAY_APPLICATION_ID not found in environment" if args['application_id'].blank?
       errors << "WF_GATEWAY_CONSUMER_KEY not found in environment" if args['consumer_key'].blank?
       errors << "WF_GATEWAY_CONSUMER_SECRET not found in environment" if args['consumer_secret'].blank?
+      errors << "WF_PUBLIC_CERT not found in environment" if args['cert'].blank?
+      errors << "WF_PRIVATE_KEY not found in environment" if args['key'].blank?
       raise ArgumentError, errors.map{|e| "#{e}"}.join(', ').delete_suffix!(',') if errors.length > 0
     end
 
