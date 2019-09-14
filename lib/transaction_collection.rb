@@ -70,7 +70,8 @@ module TransactionDetail
     end
 
     def transactions(account_number)
-      @data[:accounts][account_number].transactions
+      an = account_number.to_i
+      @data[:accounts][an].transactions
     end
 
     def next_cursor

@@ -45,24 +45,37 @@ RSpec.configure do |config|
             headers: {
                 'Accept' => '*/*',
                 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-                'Authorization' => 'Bearer bogustogus',
+                'Authorization' => 'Basic Ym9ndXNrZXk6Ym9ndXNzZWNyZXQ=',
                 'Content-Type' => 'application/x-www-form-urlencoded',
                 'Host' => 'api-sandbox.wellsfargo.com',
-                'Connection' => 'close',
+                'User-Agent' => 'Ruby'
             }).
-        to_return(status: 200, body: "{\"access_token\":\"boguskeytoguskey\",\"scope\":\"TM-Transaction-Search am_application_scope\",\"token_type\":\"Bearer\",\"expires_in\":86400}", headers: {})
-    stub_request(:post, "https://api.wellsfargo.com/treasury/transaction-reporting/v3/transactions/search").
+        to_return(status: 200, body: "{\"access_token\":\"bogustogus\",\"scope\":\"TM-Transaction-Search am_application_scope\",\"token_type\":\"Bearer\",\"expires_in\":86400}", headers: {})
+    stub_request(:post, "https://api-sandbox.wellsfargo.com/treasury/transaction-reporting/v3/transactions/search").
         with(
-            body: "{\"datetime_range\":{\"start_transaction_datetime\":\"2019-09-11T00:00:00Z\",\"end_transaction_datetime\":\"2019-09-11T23:59:59Z\"},\"accounts\":[{\"bank_id\":\"111111111\",\"account_number\":\"2222222222\"},{\"bank_id\":\"111111111\",\"account_number\":\"3333333333\"}]}"
+            body: "{\"datetime_range\":{\"start_transaction_datetime\":\"2019-09-11T00:00:00Z\",\"end_transaction_datetime\":\"2019-09-11T23:59:59Z\"},\"accounts\":[{\"bank_id\":\"111111111\",\"account_number\":\"2222222222\"},{\"bank_id\":\"111111111\",\"account_number\":\"3333333333\"}]}",
             headers: {
                 'Accept' => '*/*',
                 'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
-                'Authorization' => 'Bearer boguskeytoguskey',
+                'Authorization' => 'Bearer bogustogus',
                 'Content-Type' => 'application/json',
-                'Host' => 'api-ssl.bitly.com',
+                'Client-Request-Id' => 'bogus-request-id',
+                'Gateway-Entity-Id' => 'bogus-entity-id',
+                'Host' => 'api-sandbox.wellsfargo.com',
                 'User-Agent' => 'Ruby'
             }).
         to_return(status: 200, body: "{\"accounts\":[{\"bank_id\":\"111111111\",\"account_number\":\"2222222222\",\"account_type\":\"DEMAND_DEPOSIT\",\"account_name\":\"MIDCAP BUSINESS CREDIT LLC\",\"currency_code\":\"USD\",\"transaction_count\":3,\"transactions\":[{\"posting_date\":\"2019-09-11\",\"value_date\":\"2019-09-11\",\"transaction_datetime\":\"2019-09-11 16:08:56Z\",\"debit_credit_indicator\":\"DEBIT\",\"transaction_type\":\"ACH\",\"bai_type_code\":\"455\",\"transaction_description\":\"COMPANY NAME:  CLIENT ANALYSIS                    SRVC CHRG ENTRY DESC:    SRVC CHRG RECIPIENT ID:   SVC CHGE 0819 RECIPIENT NAME:000004764506150 COMPANY ID:    DP10700543 ENTRY CLASS CODE:   PPD DISCRETIONARY DATA: TRANSACTION CODE: 27\",\"transaction_amount\":253.75,\"zero_day_float\":0.00,\"one_day_float\":0.00,\"two_date_float\":0.00,\"customer_reference_number\":\"091000018762757\",\"transaction_status\":\"RECEIVED\"},{\"posting_date\":\"2019-09-11\",\"value_date\":\"2019-09-11\",\"transaction_datetime\":\"2019-09-11 13:30:51Z\",\"debit_credit_indicator\":\"DEBIT\",\"transaction_type\":\"WIRE\",\"bai_type_code\":\"506\",\"transaction_description\":\"190911041146 000004765495700 MIDCAP BUSINESS CREDIT LLC CONCENTRATION ACCOUNT 433 S MAIN ST STE 212 WEST HA RTFORD CT US 06110-2812 OBI=ACCOUNT TRANSFER /FTR/ Completed Timestamp 190911083038 (Time Released)\",\"transaction_amount\":163649.84,\"zero_day_float\":0.00,\"one_day_float\":0.00,\"two_date_float\":0.00,\"transaction_status\":\"COMPLETE\"},{\"posting_date\":\"2019-09-11\",\"value_date\":\"2019-09-11\",\"transaction_datetime\":\"2019-09-11 12:26:22Z\",\"debit_credit_indicator\":\"CREDIT\",\"transaction_type\":\"WIRE\",\"bai_type_code\":\"195\",\"transaction_description\":\"0911D4B74G1C000114 0911D4B74G1C000114 190911030824 044000024 HUNTINGTON NATIONAL BANK THE HUNTINGTON CENTER 41 S HIGH STREET COLUMBUS, OHIO 20190 91100000810 ORG=ROYAL ICE CREAM CO AKA PIERRES FRENCH ICE CREAM COMP 6200 EUCLID AVE CLEVELAND  OH 44103 OBI=REF: FBO ROYAL ICE CREAM COMPANY DBA PIERRES ICE CREAM CO OPI=01668343962 /FTR/ BNF=4764506150 MIDCAP BUSINESS CREDIT LLC FBO ROYAL ICE CREAM 433 SOUTH MAIN ST WEST HARTFORD CT 06110 Completed Timestamp 190911072613 (Time Released)\",\"transaction_amount\":163108.42,\"zero_day_float\":0.00,\"one_day_float\":0.00,\"two_date_float\":0.00,\"transaction_status\":\"COMPLETE\"}]},{\"bank_id\":\"111111111\",\"account_number\":\"3333333333\",\"account_type\":\"DEMAND_DEPOSIT\",\"account_name\":\"MIDCAP BUSINESS CREDIT LLC\",\"currency_code\":\"USD\",\"transaction_count\":3,\"transactions\":[{\"posting_date\":\"2019-09-11\",\"value_date\":\"2019-09-11\",\"transaction_datetime\":\"2019-09-11 16:08:56Z\",\"debit_credit_indicator\":\"DEBIT\",\"transaction_type\":\"ACH\",\"bai_type_code\":\"455\",\"transaction_description\":\"COMPANY NAME:  CLIENT ANALYSIS                    SRVC CHRG ENTRY DESC:    SRVC CHRG RECIPIENT ID:   SVC CHGE 0819 RECIPIENT NAME:000004744710146 COMPANY ID:    DP10700543 ENTRY CLASS CODE:   PPD DISCRETIONARY DATA: TRANSACTION CODE: 27\",\"transaction_amount\":252.53,\"zero_day_float\":0.00,\"one_day_float\":0.00,\"two_date_float\":0.00,\"customer_reference_number\":\"091000018761979\",\"transaction_status\":\"RECEIVED\"},{\"posting_date\":\"2019-09-11\",\"value_date\":\"2019-09-11\",\"transaction_datetime\":\"2019-09-11 13:30:13Z\",\"debit_credit_indicator\":\"DEBIT\",\"transaction_type\":\"WIRE\",\"bai_type_code\":\"506\",\"transaction_description\":\"190911040915 000004765495700 MIDCAP BUSINESS CREDIT LLC CONCENTRATION ACCOUNT 433 S MAIN ST STE 212 WEST HA RTFORD CT US 06110-2812 OBI=ACCOUNT TRANSFER /FTR/ Completed Timestamp 190911083005 (Time Released)\",\"transaction_amount\":39882.09,\"zero_day_float\":0.00,\"one_day_float\":0.00,\"two_date_float\":0.00,\"transaction_status\":\"COMPLETE\"},{\"posting_date\":\"2019-09-11\",\"value_date\":\"2019-09-11\",\"transaction_datetime\":\"2019-09-11 12:06:08Z\",\"debit_credit_indicator\":\"CREDIT\",\"transaction_type\":\"WIRE\",\"bai_type_code\":\"206\",\"transaction_description\":\"190911029133 000004126195569 PROFUSION INDUSTRIES, LLC 822 KUMHO DR STE 202 FAIRLAWN OH US 44333-8334 OBI=P ROFUSION INDUSTRIES LLC /FTR/ Completed Timestamp 190911070601 (Time Released)\",\"transaction_amount\":39358.40,\"zero_day_float\":0.00,\"one_day_float\":0.00,\"two_date_float\":0.00,\"transaction_status\":\"COMPLETE\"}]}],\"limit\":50,\"total_count\":6,\"paging\":[{}]}", headers: {})
+    stub_request(:post, "https://api-sandbox.wellsfargo.com/token?grant_type=client_credentials&scope=TM-Transaction-Search").
+        with(
+            headers: {
+                'Accept' => '*/*',
+                'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                'Authorization' => 'Basic aW52YWxpZDppbnZhbGlk',
+                'Content-Type' => 'application/x-www-form-urlencoded',
+                'Host' => 'api-sandbox.wellsfargo.com',
+                'User-Agent' => 'Ruby'
+            }).
+        to_return(status: 401, body: "Unauthorized", headers: {})
   end
 
   # This option will default to `:apply_to_host_groups` in RSpec 4 (and will

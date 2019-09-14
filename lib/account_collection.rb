@@ -3,9 +3,9 @@ require 'json'
 
 module TransactionDetail
   class AccountCollection
-    def initialize(bank_id)
+    def initialize(bank_id, accounts = [])
       @bank_id = bank_id
-      @accounts = Set.new()
+      @accounts = Set.new(accounts)
     end
 
     def add_account(account_num)

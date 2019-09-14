@@ -1,5 +1,6 @@
 require 'net/http'
 require 'uri'
+require 'active_support/core_ext/object/blank.rb'
 
 module TransactionDetail
   class Client
@@ -8,10 +9,12 @@ module TransactionDetail
     ENTITY_ID = 'WF_GATEWAY_ENTITY_ID'
     APPLICATION_ID = 'WF_GATEWAY_APPLICATION_ID'
     TOKEN_PATH = 'WF_API_TOKEN_PATH'
+    TRANSACTION_SEARCH_PATH = 'WF_TRANSACTION_SEARCH_PATH'
     PUBLIC_CERT = 'WF_PUBLIC_CERT'
     PRIVATE_KEY = 'WF_PRIVATE_KEY'
     CONSUMER_KEY = 'WF_GATEWAY_CONSUMER_KEY'
     CONSUMER_SECRET = 'WF_GATEWAY_CONSUMER_SECRET'
+    MAX_RETRIES = 'WF_MAX_RETRIES'
 
     def initialize()
       uri = ENV[API_BASE_URL]
@@ -27,45 +30,58 @@ module TransactionDetail
         'scope' => scope,
         'entity_id' => entity_id,
         'application_id' => application_id,
-        'consumer_key' = consumer_key,
-        'consumer_secret' = consumer_secret,
+        'consumer_key' => consumer_key,
+        'consumer_secret' => consumer_secret,
         'cert' => cert,
         'key' => key
       })
+      @max_retries = ENV[MAX_RETRIES].blank? ? 5 : ENV[MAX_RETRIES]
       @scope = scope
       @base_uri = URI(uri)
       @creds = {:username => consumer_key, :password => consumer_secret}
       @application_id = application_id
       @entity_id = entity_id
       @authenticated = false
+      @cert = cert
+      @key = key
     end
 
     def refresh_token()
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.read_timeout = 15 #seconds
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-
       token_uri = @base_uri
       token_uri.path = ENV[TOKEN_PATH].blank? ? '/token' : ENV[TOKEN_PATH]
       token_uri.query = URI.encode_www_form({
         grant_type: 'client_credentials',
         scope: URI.escape(@scope),
       })
-
+      http = Net::HTTP.new(token_uri.host, token_uri.port)
+      http.use_ssl = true
+      http.read_timeout = 15 #seconds
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       request = Net::HTTP::Post.new(token_uri)
       request.basic_auth(@creds[:username], @creds[:password])
       request['Content-Type'] = 'application/x-www-form-urlencoded'
 
       response = http.request(request)
-      raise HTTPError, response unless response.is_a? Net::HTTPOK
+      raise HTTPError, response.body unless response.is_a? Net::HTTPOK
       @authenticated = true
       @token = JSON.parse(response.read_body)['access_token']
     end
 
     def add_required_headers(request)
       unless @authenticated
-        refresh_token()
+        retries = 0
+        begin
+          refresh_token()
+        rescue HTTPError => e
+          if retries < @max_retries
+            retries += 1
+            max_sleep_seconds = Float(2 ** retries)
+            sleep rand(0..max_sleep_seconds)
+            retry
+          else
+            raise e
+          end
+        end
       end
       request["Authorization"] = "Bearer #{@token}"
       request["client-request-id"] = @application_id
@@ -75,17 +91,15 @@ module TransactionDetail
 
     def transaction_search(account_collection, start_datetime, end_datetime)
       raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(TransactionDetail::AccountCollection)
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.read_timeout = 15 #seconds
-      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      http.cert = OpenSSL::X509::Certificate.new(cert)
-      http.key = OpenSSL::PKey::RSA.new(key)
-
       transaction_search_uri = @base_uri
       transaction_search_path = '/treasury/transaction-reporting/v3/transactions/search'
       transaction_search_uri.path = ENV[TRANSACTION_SEARCH_PATH].blank? ? transaction_search_path : ENV[TRANSACTION_SEARCH_PATH]
-
+      http = Net::HTTP.new(transaction_search_uri.host, transaction_search_uri.port)
+      http.use_ssl = true
+      http.read_timeout = 15 #seconds
+      http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      http.cert = OpenSSL::X509::Certificate.new(@cert)
+      http.key = OpenSSL::PKey::RSA.new(@key)
       payload = { "datetime_range" => {"start_transaction_datetime" => start_datetime, "end_transaction_datetime" => end_datetime }}
       payload.merge!(account_collection.as_json)
       request = Net::HTTP::Post.new(transaction_search_uri)
@@ -93,7 +107,7 @@ module TransactionDetail
       request['Content-Type'] = 'application/json'
       request.body = payload.to_json
       response = http.request(request)
-      raise HTTPError, response unless response.is_a? Net::HTTPOK
+      raise HTTPError, response.body unless response.is_a? Net::HTTPOK
       JSON.parse(response.read_body, object_class: TransactionDetail::Collection, create_additions: true)
     end
 

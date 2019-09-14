@@ -8,6 +8,12 @@ describe 'AccountCollection' do
     expect(ac.to_json).to eq(expected.to_json)
   end
 
+  it 'can be initialized with accounts' do
+    ac = TransactionDetail::AccountCollection.new('1234', ['4567890'])
+    expected = {"accounts"=>[{"bank_id"=>"1234", "account_number"=>"4567890"}]}
+    expect(ac.to_json).to eq(expected.to_json)
+  end
+
   it 'can have an account removed' do
     ac.add_account("123456")
     accts = ac.list_accounts
