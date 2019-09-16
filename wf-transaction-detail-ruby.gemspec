@@ -10,4 +10,9 @@ Gem::Specification.new do |s|
     "lib/account_collection.rb"
   ]
   s.require_paths = ["lib"]
+
+  s.add_runtime_dependency 'activesupport'
+
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'webmock'
 end
