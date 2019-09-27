@@ -2,7 +2,7 @@ require 'net/http'
 require 'uri'
 require 'active_support/core_ext/object/blank.rb'
 
-module TransactionDetail
+module WFTransactionDetail
   class Client
     API_BASE_URL = 'WF_API_BASE_URL'
     TRANSACTION_DETAIL_SCOPE = 'WF_TRANSACTION_DETAIL_SCOPE'
@@ -90,7 +90,7 @@ module TransactionDetail
     end
 
     def transaction_search(account_collection, start_datetime, end_datetime)
-      raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(TransactionDetail::AccountCollection)
+      raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(WFTransactionDetail::AccountCollection)
       transaction_search_uri = @base_uri
       transaction_search_path = '/treasury/transaction-reporting/v3/transactions/search'
       transaction_search_uri.path = ENV[TRANSACTION_SEARCH_PATH].blank? ? transaction_search_path : ENV[TRANSACTION_SEARCH_PATH]
@@ -108,7 +108,7 @@ module TransactionDetail
       request.body = payload.to_json
       response = http.request(request)
       raise HTTPError, response.body unless response.is_a? Net::HTTPOK
-      JSON.parse(response.read_body, object_class: TransactionDetail::Collection, create_additions: true)
+      JSON.parse(response.read_body, object_class: WFTransactionDetail::Collection, create_additions: true)
     end
 
     def validate_required_args(args)

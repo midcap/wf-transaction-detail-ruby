@@ -1,7 +1,7 @@
 require 'account_collection'
 
 describe 'AccountCollection' do
-  let(:ac) { TransactionDetail::AccountCollection.new('1234') }
+  let(:ac) { WFTransactionDetail::AccountCollection.new('1234') }
   it 'can have an account added' do
     ac.add_account("4567890")
     expected = {"accounts"=>[{"bank_id"=>"1234", "account_number"=>"4567890"}]}
@@ -9,7 +9,7 @@ describe 'AccountCollection' do
   end
 
   it 'can be initialized with accounts' do
-    ac = TransactionDetail::AccountCollection.new('1234', ['4567890'])
+    ac = WFTransactionDetail::AccountCollection.new('1234', ['4567890'])
     expected = {"accounts"=>[{"bank_id"=>"1234", "account_number"=>"4567890"}]}
     expect(ac.to_json).to eq(expected.to_json)
   end

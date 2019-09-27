@@ -1,6 +1,6 @@
 require 'forwardable'
 
-module TransactionDetail
+module WFTransactionDetail
   class HTTPError < StandardError
     extend Forwardable
 

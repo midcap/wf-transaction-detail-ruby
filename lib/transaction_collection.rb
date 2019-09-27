@@ -2,7 +2,7 @@ require 'json'
 require 'active_support/core_ext/object/try'
 require 'forwardable'
 
-module TransactionDetail
+module WFTransactionDetail
 
   def initialize_instance_variables(o)
     o.data.each do |key, value|
@@ -28,7 +28,7 @@ module TransactionDetail
       @data = {
         JSON.create_id => self.class.name
       }
-      if o != nil && o.kind_of?(TransactionDetail::Collection)
+      if o != nil && o.kind_of?(WFTransactionDetail::Collection)
         initialize_accounts(o.data)
         initialize_pages(o.data)
       end
@@ -50,10 +50,10 @@ module TransactionDetail
       # Once the initial object is created we don't need to keep creating this property
       o.data.delete(JSON.create_id)
       if is_account?(o.data)
-        return TransactionDetail::Account.new(o)
+        return WFTransactionDetail::Account.new(o)
       end
       if is_transaction?(o.data)
-        return TransactionDetail::Transaction.new(o)
+        return WFTransactionDetail::Transaction.new(o)
       end
       if is_cursor?(o.data)
         return parse_cursor(o.data)
@@ -160,14 +160,14 @@ module TransactionDetail
   end
 
   class Account
-    include TransactionDetail
+    include WFTransactionDetail
     def initialize(o)
       initialize_instance_variables(o)
     end
   end
 
   class Transaction
-    include TransactionDetail
+    include WFTransactionDetail
     def initialize(o)
       initialize_instance_variables(o)
     end

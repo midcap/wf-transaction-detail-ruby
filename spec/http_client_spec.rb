@@ -4,10 +4,10 @@ require 'transaction_collection'
 require 'spec_helper'
 require 'http_error'
 
-describe TransactionDetail::Client do
+describe WFTransactionDetail::Client do
 
   it 'will validate environment variables' do
-    expect { TransactionDetail::Client.new() }.to raise_error(ArgumentError)
+    expect { WFTransactionDetail::Client.new() }.to raise_error(ArgumentError)
   end
 
   describe 'correctly set environment' do
@@ -28,14 +28,14 @@ describe TransactionDetail::Client do
       allow(OpenSSL::PKey::RSA).to receive(:new).with("-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----").and_return(true)
     end
 
-    let(:client) { TransactionDetail::Client.new() }
+    let(:client) { WFTransactionDetail::Client.new() }
     it 'can retrieve an api token' do
       token = client.refresh_token
       expect(token).to eq('bogustogus')  # see spec_helper for registered webmock request stubs and responses
     end
 
     it 'can retrieve transactions' do
-      accounts = TransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       transaction_detail = client.transaction_search(
@@ -61,15 +61,15 @@ describe TransactionDetail::Client do
       allow(ENV).to receive(:[]).with("WF_GATEWAY_CONSUMER_KEY").and_return("invalid")
       allow(ENV).to receive(:[]).with("WF_GATEWAY_CONSUMER_SECRET").and_return("invalid")
       allow(ENV).to receive(:[]).with("WF_MAX_RETRIES").and_return(0)
-      client = TransactionDetail::Client.new()
-      accounts = TransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      client = WFTransactionDetail::Client.new()
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       expect{ client.transaction_search(
         accounts,
         start_datetime.strftime('%Y-%m-%dT%H:%M:%SZ'),
         end_datetime.strftime('%Y-%m-%dT%H:%M:%SZ'),
-      ) }.to raise_error(TransactionDetail::HTTPError)
+      ) }.to raise_error(WFTransactionDetail::HTTPError)
     end
 
   end

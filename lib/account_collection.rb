@@ -1,7 +1,7 @@
 require 'set'
 require 'json'
 
-module TransactionDetail
+module WFTransactionDetail
   class AccountCollection
     def initialize(bank_id, accounts = [])
       @bank_id = bank_id
