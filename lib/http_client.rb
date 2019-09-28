@@ -121,7 +121,7 @@ module WFTransactionDetail
       errors << "WF_GATEWAY_CONSUMER_SECRET not found in environment" if args['consumer_secret'].blank?
       errors << "WF_PUBLIC_CERT not found in environment" if args['cert'].blank?
       errors << "WF_PRIVATE_KEY not found in environment" if args['key'].blank?
-      raise ArgumentError, errors.map{|e| "#{e}"}.join(', ').delete_suffix!(',') if errors.length > 0
+      raise ArgumentError, errors.map{|e| "#{e}"}.join(', ').chomp(',') if errors.length > 0
     end
 
   end
