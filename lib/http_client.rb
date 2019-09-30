@@ -15,6 +15,7 @@ module WFTransactionDetail
     CONSUMER_KEY = 'WF_GATEWAY_CONSUMER_KEY'
     CONSUMER_SECRET = 'WF_GATEWAY_CONSUMER_SECRET'
     MAX_RETRIES = 'WF_MAX_RETRIES'
+    DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
 
     def initialize()
       uri = ENV[API_BASE_URL]
@@ -62,7 +63,7 @@ module WFTransactionDetail
       request['Content-Type'] = 'application/x-www-form-urlencoded'
 
       response = http.request(request)
-      raise HTTPError, response.body unless response.is_a? Net::HTTPOK
+      raise HTTPError.new(response) unless response.is_a? Net::HTTPOK
       @authenticated = true
       @token = JSON.parse(response.read_body)['access_token']
     end
@@ -100,14 +101,14 @@ module WFTransactionDetail
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       http.cert = OpenSSL::X509::Certificate.new(@cert)
       http.key = OpenSSL::PKey::RSA.new(@key)
-      payload = { "datetime_range" => {"start_transaction_datetime" => start_datetime, "end_transaction_datetime" => end_datetime }}
+      payload = { "datetime_range" => {"start_transaction_datetime" => start_datetime.strftime(DATETIME_FORMAT), "end_transaction_datetime" => end_datetime.strftime(DATETIME_FORMAT) }}
       payload.merge!(account_collection.as_json)
       request = Net::HTTP::Post.new(transaction_search_uri)
       request = add_required_headers(request)
       request['Content-Type'] = 'application/json'
       request.body = payload.to_json
       response = http.request(request)
-      raise HTTPError, response.body unless response.is_a? Net::HTTPOK
+      raise HTTPError.new(response) unless response.is_a? Net::HTTPOK
       JSON.parse(response.read_body, object_class: WFTransactionDetail::Collection, create_additions: true)
     end
 
