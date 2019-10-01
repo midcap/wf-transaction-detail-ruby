@@ -164,12 +164,31 @@ module WFTransactionDetail
     def initialize(o)
       initialize_instance_variables(o)
     end
+    def to_h
+      Hash[instance_variables.map { |key|
+        variable = instance_variable_get key
+        [key.to_s[1..-1].to_sym,
+          if variable.respond_to? :to_h
+            if variable.kind_of?(Array)
+              variable.map { |var| var.to_h }
+            else
+              variable.to_h
+            end
+          else
+            variable
+          end
+        ]
+      }]
+    end
   end
 
   class Transaction
     include WFTransactionDetail
     def initialize(o)
       initialize_instance_variables(o)
+    end
+    def to_h
+      instance_variables.each_with_object({}) { |var, hash| hash[var.to_s.delete("@")] = instance_variable_get(var) }
     end
   end
 end
