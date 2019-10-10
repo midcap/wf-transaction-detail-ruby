@@ -40,8 +40,8 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       transaction_detail = client.transaction_search(
         accounts,
-        start_datetime.strftime('%Y-%m-%dT%H:%M:%SZ'),
-        end_datetime.strftime('%Y-%m-%dT%H:%M:%SZ'),
+        start_datetime,
+        end_datetime,
       )
 
       expect(transaction_detail.transactions(2222222222).length).to eq(3)
@@ -67,10 +67,20 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       expect{ client.transaction_search(
         accounts,
-        start_datetime.strftime('%Y-%m-%dT%H:%M:%SZ'),
-        end_datetime.strftime('%Y-%m-%dT%H:%M:%SZ'),
-      ) }.to raise_error(WFTransactionDetail::HTTPError)
+        start_datetime,
+        end_datetime,
+      ) }.to raise_error(WFTransactionDetail::HTTPError, "Unauthorized")
     end
 
+    it 'returns a http error with a message and a body' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      start_datetime = DateTime.new(2019,9,11,0,0,0)
+      end_datetime = DateTime.new(2019,9,18,23,59,59)
+      expect{ client.transaction_search(
+        accounts,
+        start_datetime,
+        end_datetime,
+      ) }.to raise_error(WFTransactionDetail::HTTPError, /\{\\"errors\\":\[\{\\"error_code\\":\\"1018-011\\",\\"description\\"/)
+    end
   end
 end
