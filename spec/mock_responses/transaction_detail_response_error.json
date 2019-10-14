@@ -1,0 +1,9 @@
+{
+  "errors": [
+    {
+      "error_code": "1018-011",
+      "description": "The requested date time range should be restricted to 7 days.",
+      "api_specification_url": "https://devstore.wellsfargo.com"
+    }
+  ]
+}

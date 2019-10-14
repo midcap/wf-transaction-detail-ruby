@@ -80,7 +80,8 @@ describe WFTransactionDetail::Client do
         accounts,
         start_datetime,
         end_datetime,
-      ) }.to raise_error(WFTransactionDetail::HTTPError, /\{\\"errors\\":\[\{\\"error_code\\":\\"1018-011\\",\\"description\\"/)
+      ) }.to raise_error(WFTransactionDetail::HTTPError, /\{"errors":\[\{"error_code":"1018-011","description"/)
     end
   end
 end
+

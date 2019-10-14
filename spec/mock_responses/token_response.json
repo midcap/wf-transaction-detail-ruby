@@ -1,0 +1,7 @@
+{
+  "access_token": "bogustogus",
+  "scope": "TM-Transaction-Search am_application_scope",
+  "token_type": "Bearer",
+  "expires_in": 86400
+}
+

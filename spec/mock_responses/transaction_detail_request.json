@@ -1,0 +1,16 @@
+{
+  "datetime_range": {
+    "start_transaction_datetime": "2019-09-11T00:00:00Z",
+    "end_transaction_datetime": "2019-09-11T23:59:59Z"
+  },
+  "accounts": [
+    {
+      "bank_id": "111111111",
+      "account_number": "2222222222"
+    },
+    {
+      "bank_id": "111111111",
+      "account_number": "3333333333"
+    }
+  ]
+}
