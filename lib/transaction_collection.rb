@@ -165,20 +165,18 @@ module WFTransactionDetail
       initialize_instance_variables(o)
     end
     def to_h
-      Hash[instance_variables.map { |key|
-        variable = instance_variable_get key
-        [key.to_s[1..-1].to_sym,
-          if variable.respond_to? :to_h
-            if variable.kind_of?(Array)
-              variable.map { |var| var.to_h }
-            else
-              variable.to_h
-            end
+      vars = instance_variables.map do |key|
+        variable = instance_variable_get(key)
+        if variable.respond_to? :to_h
+          if variable.kind_of?(Array)
+            variable = variable.map { |var| var.to_h }
           else
-            variable
+            variable = variable.to_h
           end
-        ]
-      }]
+        end
+        [key.to_s[1..-1].to_sym, variable]
+      end
+      Hash[vars]
     end
   end
 
