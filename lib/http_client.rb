@@ -10,6 +10,7 @@ module WFTransactionDetail
     APPLICATION_ID = 'WF_GATEWAY_APPLICATION_ID'
     TOKEN_PATH = 'WF_API_TOKEN_PATH'
     TRANSACTION_SEARCH_PATH = 'WF_TRANSACTION_SEARCH_PATH'
+    TRANSACTION_SEARCH_LIMIT = 'WF_TRANSACTION_SEARCH_LIMIT'
     PUBLIC_CERT = 'WF_PUBLIC_CERT'
     PRIVATE_KEY = 'WF_PRIVATE_KEY'
     CONSUMER_KEY = 'WF_GATEWAY_CONSUMER_KEY'
@@ -90,18 +91,26 @@ module WFTransactionDetail
       request
     end
 
-    def transaction_search(account_collection, start_datetime, end_datetime)
+    def transaction_search(account_collection, start_datetime, end_datetime, debit_credit_indicator="ALL")
       raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(WFTransactionDetail::AccountCollection)
       transaction_search_uri = @base_uri
       transaction_search_path = '/treasury/transaction-reporting/v3/transactions/search'
       transaction_search_uri.path = ENV[TRANSACTION_SEARCH_PATH].blank? ? transaction_search_path : ENV[TRANSACTION_SEARCH_PATH]
+      transaction_limit = ENV[TRANSACTION_SEARCH_LIMIT].blank? ? 100 : ENV[TRANSACTION_SEARCH_LIMIT]
       http = Net::HTTP.new(transaction_search_uri.host, transaction_search_uri.port)
       http.use_ssl = true
       http.read_timeout = 15 #seconds
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       http.cert = OpenSSL::X509::Certificate.new(@cert)
       http.key = OpenSSL::PKey::RSA.new(@key)
-      payload = { "datetime_range" => {"start_transaction_datetime" => start_datetime.strftime(DATETIME_FORMAT), "end_transaction_datetime" => end_datetime.strftime(DATETIME_FORMAT) }}
+      payload = {
+        "datetime_range" => {
+          "start_transaction_datetime" => start_datetime.strftime(DATETIME_FORMAT),
+          "end_transaction_datetime" => end_datetime.strftime(DATETIME_FORMAT)
+        },
+        "debit_credit_indicator" => debit_credit_indicator,
+        "limit" => transaction_limit,
+      }
       payload.merge!(account_collection.as_json)
       request = Net::HTTP::Post.new(transaction_search_uri)
       request = add_required_headers(request)
