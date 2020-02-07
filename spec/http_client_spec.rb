@@ -23,6 +23,7 @@ describe WFTransactionDetail::Client do
       allow(ENV).to receive(:[]).with("WF_GATEWAY_CONSUMER_SECRET").and_return("bogussecret")
       allow(ENV).to receive(:[]).with("WF_API_TOKEN_PATH").and_return(nil)
       allow(ENV).to receive(:[]).with("WF_TRANSACTION_SEARCH_PATH").and_return(nil)
+      allow(ENV).to receive(:[]).with("WF_TRANSACTION_SEARCH_LIMIT").and_return(nil)
       allow(ENV).to receive(:[]).with("WF_MAX_RETRIES").and_return(nil)
       allow(OpenSSL::X509::Certificate).to receive(:new).with("-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----").and_return(true)
       allow(OpenSSL::PKey::RSA).to receive(:new).with("-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----").and_return(true)

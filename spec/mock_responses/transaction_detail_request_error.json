@@ -3,6 +3,8 @@
     "start_transaction_datetime": "2019-09-11T00:00:00Z",
     "end_transaction_datetime": "2019-09-18T23:59:59Z"
   },
+  "debit_credit_indicator": "ALL",
+  "limit": 100,
   "accounts": [
     {
       "bank_id": "111111111",
