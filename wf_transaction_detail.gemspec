@@ -21,7 +21,7 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency 'activesupport'
   s.add_development_dependency "bundler", "~> 2.0"
-  s.add_development_dependency "rake", "~> 10.0"
+  s.add_development_dependency "rake", "~> 12.3"
   s.add_development_dependency "rspec", "~> 3.0"
   s.add_development_dependency 'webmock'
 end
