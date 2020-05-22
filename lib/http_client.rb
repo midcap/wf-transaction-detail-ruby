@@ -1,4 +1,5 @@
 require 'net/http'
+require 'securerandom'
 require 'uri'
 require 'active_support/core_ext/object/blank.rb'
 
@@ -86,9 +87,13 @@ module WFTransactionDetail
         end
       end
       request["Authorization"] = "Bearer #{@token}"
-      request["client-request-id"] = @application_id
+      request["client-request-id"] = generate_uuid
       request["gateway-entity-id"] = @entity_id
       request
+    end
+
+    def generate_uuid
+      SecureRandom.uuid
     end
 
     def transaction_search(account_collection, start_datetime, end_datetime, debit_credit_indicator="ALL")
