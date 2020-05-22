@@ -1,4 +1,5 @@
 require 'net/http'
+require 'securerandom'
 require 'uri'
 require 'active_support/core_ext/object/blank.rb'
 
@@ -7,7 +8,6 @@ module WFTransactionDetail
     API_BASE_URL = 'WF_API_BASE_URL'
     TRANSACTION_DETAIL_SCOPE = 'WF_TRANSACTION_DETAIL_SCOPE'
     ENTITY_ID = 'WF_GATEWAY_ENTITY_ID'
-    APPLICATION_ID = 'WF_GATEWAY_APPLICATION_ID'
     TOKEN_PATH = 'WF_API_TOKEN_PATH'
     TRANSACTION_SEARCH_PATH = 'WF_TRANSACTION_SEARCH_PATH'
     TRANSACTION_SEARCH_LIMIT = 'WF_TRANSACTION_SEARCH_LIMIT'
@@ -22,7 +22,6 @@ module WFTransactionDetail
       uri = ENV[API_BASE_URL]
       scope = ENV[TRANSACTION_DETAIL_SCOPE]
       entity_id = ENV[ENTITY_ID]
-      application_id = ENV[APPLICATION_ID]
       consumer_key = ENV[CONSUMER_KEY]
       consumer_secret = ENV[CONSUMER_SECRET]
       cert = ENV[PUBLIC_CERT]
@@ -31,7 +30,6 @@ module WFTransactionDetail
         'uri' => uri,
         'scope' => scope,
         'entity_id' => entity_id,
-        'application_id' => application_id,
         'consumer_key' => consumer_key,
         'consumer_secret' => consumer_secret,
         'cert' => cert,
@@ -41,7 +39,6 @@ module WFTransactionDetail
       @scope = scope
       @base_uri = URI(uri)
       @creds = {:username => consumer_key, :password => consumer_secret}
-      @application_id = application_id
       @entity_id = entity_id
       @authenticated = false
       @cert = cert
@@ -86,9 +83,13 @@ module WFTransactionDetail
         end
       end
       request["Authorization"] = "Bearer #{@token}"
-      request["client-request-id"] = @application_id
+      request["client-request-id"] = generate_uuid
       request["gateway-entity-id"] = @entity_id
       request
+    end
+
+    def generate_uuid
+      SecureRandom.uuid
     end
 
     def transaction_search(account_collection, start_datetime, end_datetime, debit_credit_indicator="ALL")
@@ -118,7 +119,13 @@ module WFTransactionDetail
       request.body = payload.to_json
       response = http.request(request)
       raise HTTPError.new(response) unless response.is_a? Net::HTTPOK
-      JSON.parse(response.read_body, object_class: WFTransactionDetail::Collection, create_additions: true)
+      collection = JSON.parse(response.read_body, object_class: WFTransactionDetail::Collection, create_additions: true)
+      collection.add_client_request_id(request['client-request-id'])
+      collection.add_client_request_datetime([
+        start_datetime.strftime(DATETIME_FORMAT),
+        end_datetime.strftime(DATETIME_FORMAT)
+      ])
+      collection
     end
 
     def validate_required_args(args)
@@ -126,7 +133,6 @@ module WFTransactionDetail
       errors << "WF_TOKEN_API_URL not found in environment" if args['uri'].blank?
       errors << "WF_TRANSACTION_DETAIL_SCOPE not found in environment" if args['scope'].blank?
       errors << "WF_GATEWAY_ENTITY_ID not found in environment" if args['entity_id'].blank?
-      errors << "WF_GATEWAY_APPLICATION_ID not found in environment" if args['application_id'].blank?
       errors << "WF_GATEWAY_CONSUMER_KEY not found in environment" if args['consumer_key'].blank?
       errors << "WF_GATEWAY_CONSUMER_SECRET not found in environment" if args['consumer_secret'].blank?
       errors << "WF_PUBLIC_CERT not found in environment" if args['cert'].blank?

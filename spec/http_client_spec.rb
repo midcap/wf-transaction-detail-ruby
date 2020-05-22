@@ -5,7 +5,7 @@ require 'spec_helper'
 require 'http_error'
 
 describe WFTransactionDetail::Client do
-
+  DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
   it 'will validate environment variables' do
     expect { WFTransactionDetail::Client.new() }.to raise_error(ArgumentError)
   end
@@ -16,7 +16,6 @@ describe WFTransactionDetail::Client do
       allow(ENV).to receive(:[]).with("WF_API_BASE_URL").and_return("https://api-sandbox.wellsfargo.com")
       allow(ENV).to receive(:[]).with("WF_TRANSACTION_DETAIL_SCOPE").and_return("TM-Transaction-Search")
       allow(ENV).to receive(:[]).with("WF_GATEWAY_ENTITY_ID").and_return("bogus-entity-id")
-      allow(ENV).to receive(:[]).with("WF_GATEWAY_APPLICATION_ID").and_return("bogus-request-id")
       allow(ENV).to receive(:[]).with("WF_PUBLIC_CERT").and_return("-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----")
       allow(ENV).to receive(:[]).with("WF_PRIVATE_KEY").and_return("-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----")
       allow(ENV).to receive(:[]).with("WF_GATEWAY_CONSUMER_KEY").and_return("boguskey")
@@ -27,9 +26,11 @@ describe WFTransactionDetail::Client do
       allow(ENV).to receive(:[]).with("WF_MAX_RETRIES").and_return(nil)
       allow(OpenSSL::X509::Certificate).to receive(:new).with("-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----").and_return(true)
       allow(OpenSSL::PKey::RSA).to receive(:new).with("-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----").and_return(true)
+      allow_any_instance_of(WFTransactionDetail::Client).to receive(:generate_uuid).and_return("bogus-request-id")
     end
 
     let(:client) { WFTransactionDetail::Client.new() }
+
     it 'can retrieve an api token' do
       token = client.refresh_token
       expect(token).to eq('bogustogus')  # see spec_helper for registered webmock request stubs and responses
@@ -52,6 +53,9 @@ describe WFTransactionDetail::Client do
       expect(transaction_detail.transactions(3333333333).length).to eq(3)
       expect(transaction_detail.transactions(3333333333)[0].transaction_amount).to eq(252.53)
       expect(transaction_detail.transactions(3333333333)[1].transaction_amount).to eq(39882.09)
+      expect(transaction_detail.client_request_id).to eq('bogus-request-id')
+      expect(transaction_detail.client_request_start_datetime).to eq(start_datetime.strftime(DATETIME_FORMAT))
+      expect(transaction_detail.client_request_end_datetime).to eq(end_datetime.strftime(DATETIME_FORMAT))
 
       # Should only return transactions within the given range
       expect(DateTime.strptime(transaction_detail.transactions(2222222222)[0].transaction_datetime, '%Y-%m-%d %H:%M:%SZ')).to be_between(start_datetime, end_datetime)

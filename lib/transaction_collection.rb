@@ -18,7 +18,7 @@ module WFTransactionDetail
     extend Forwardable
 
     def_delegators :@data, :account, :list_accounts, :transactions, :next_cursor, :prev_cursor
-    attr_accessor :data
+    attr_accessor :data, :client_request_id, :client_request_start_datetime, :client_request_end_datetime
 
     # initialize arg must be optional because the first time it is called by the JSON parser
     # it will be called with an empty constructor
@@ -59,6 +59,15 @@ module WFTransactionDetail
         return parse_cursor(o.data)
       end
       new(o)
+    end
+
+    def add_client_request_id(request_id)
+      instance_variable_set("@client_request_id", request_id)
+    end
+
+    def add_client_request_datetime(request_datetime_range)
+      instance_variable_set("@client_request_start_datetime", request_datetime_range[0])
+      instance_variable_set("@client_request_end_datetime", request_datetime_range[1])
     end
 
     def list_accounts
