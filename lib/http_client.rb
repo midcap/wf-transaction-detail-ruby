@@ -47,7 +47,7 @@ module WFTransactionDetail
 
     def refresh_token()
       token_uri = @base_uri
-      token_uri.path = ENV[TOKEN_PATH].blank? ? '/token' : ENV[TOKEN_PATH]
+      token_uri.path = ENV[TOKEN_PATH].blank? ? '/oauth2/v1/token' : ENV[TOKEN_PATH]
       token_uri.query = URI.encode_www_form({
         grant_type: 'client_credentials',
         scope: URI.escape(@scope),
@@ -56,6 +56,8 @@ module WFTransactionDetail
       http.use_ssl = true
       http.read_timeout = 15 #seconds
       http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      http.cert = OpenSSL::X509::Certificate.new(@cert)
+      http.key = OpenSSL::PKey::RSA.new(@key)
       request = Net::HTTP::Post.new(token_uri)
       request.basic_auth(@creds[:username], @creds[:password])
       request['Content-Type'] = 'application/x-www-form-urlencoded'
