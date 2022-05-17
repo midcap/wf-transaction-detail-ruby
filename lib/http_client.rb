@@ -129,7 +129,7 @@ module WFTransactionDetail
       ])
       collection
     rescue HTTPError => e
-      Rails.logger.debug "(#{request['client-request-id']}) requesting transactions from Wells Fargo for the datetime range #{start_time} <--> #{end_time}"
+      Rails.logger.debug "(#{request['client-request-id']}) requesting transactions from Wells Fargo: #{payload}"
       raise e
     end
 
