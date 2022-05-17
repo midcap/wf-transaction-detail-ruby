@@ -128,6 +128,9 @@ module WFTransactionDetail
         end_datetime.strftime(DATETIME_FORMAT)
       ])
       collection
+    rescue HTTPError => e
+      Rails.logger.debug "(#{request['client-request-id']}) requesting transactions from Wells Fargo for the datetime range #{start_time} <--> #{end_time}"
+      raise e
     end
 
     def validate_required_args(args)
