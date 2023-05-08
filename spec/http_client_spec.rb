@@ -87,6 +87,18 @@ describe WFTransactionDetail::Client do
         end_datetime,
       ) }.to raise_error(WFTransactionDetail::HTTPError, /\{"errors":\[\{"error_code":"1018-011","description"/)
     end
+
+    it 'returns an argument error for invalid next_cursor' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      start_datetime = DateTime.new(2019,9,11,0,0,0)
+      end_datetime = DateTime.new(2019,9,18,23,59,59)
+      expect{ client.next_page(
+        accounts,
+        start_datetime,
+        end_datetime,
+        next_cursor=""
+      ) }.to raise_error(ArgumentError)
+    end
   end
 end
 
