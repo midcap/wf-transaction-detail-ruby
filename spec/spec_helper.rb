@@ -42,7 +42,7 @@ RSpec.configure do |config|
 
   # Webmock for HTTP client
   config.before(:each) do
-    stub_request(:post, "https://api-sandbox.wellsfargo.com/token?grant_type=client_credentials&scope=TM-Transaction-Search").
+    stub_request(:post, "https://api-sandbox.wellsfargo.com/oauth2/v1/token?grant_type=client_credentials&scope=TM-Transaction-Search").
         with(
             headers: {
                 'Accept' => '*/*',
@@ -69,6 +69,20 @@ RSpec.configure do |config|
             to_return(status: 200, body: get_json_mock("transaction_detail_response_valid.json"), headers: {})
     stub_request(:post, "https://api-sandbox.wellsfargo.com/treasury/transaction-reporting/v3/transactions/search").
         with(
+            body: get_json_mock("transaction_detail_request_with_next_cursor_valid.json"),
+            headers: {
+                'Accept' => '*/*',
+                'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                'Authorization' => 'Bearer bogustogus',
+                'Content-Type' => 'application/json',
+                'Client-Request-Id' => 'bogus-request-id',
+                'Gateway-Entity-Id' => 'bogus-entity-id',
+                'Host' => 'api-sandbox.wellsfargo.com',
+                'User-Agent' => 'Ruby'
+            }).
+            to_return(status: 200, body: get_json_mock("transaction_detail_response_valid.json"), headers: {})
+    stub_request(:post, "https://api-sandbox.wellsfargo.com/treasury/transaction-reporting/v3/transactions/search").
+        with(
             body: get_json_mock("transaction_detail_request_error.json"),
             headers: {
                 'Accept' => '*/*',
@@ -81,7 +95,7 @@ RSpec.configure do |config|
                 'User-Agent' => 'Ruby'
             }).
             to_return(status: 400, body: get_json_mock("transaction_detail_response_error.json"), headers: {})
-    stub_request(:post, "https://api-sandbox.wellsfargo.com/token?grant_type=client_credentials&scope=TM-Transaction-Search").
+    stub_request(:post, "https://api-sandbox.wellsfargo.com/oauth2/v1/token?grant_type=client_credentials&scope=TM-Transaction-Search").
         with(
             headers: {
                 'Accept' => '*/*',

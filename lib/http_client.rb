@@ -94,7 +94,12 @@ module WFTransactionDetail
       SecureRandom.uuid
     end
 
-    def transaction_search(account_collection, start_datetime, end_datetime, debit_credit_indicator="ALL")
+    def next_page(account_collection, start_datetime, end_datetime, debit_credit_indicator="ALL", next_cursor="")
+      raise ArgumentError, "next_cursor is not valid" if !next_cursor.is_a?(String) || next_cursor.length < 37 || next_cursor.length > 43
+      transaction_search(account_collection, start_datetime, end_datetime, debit_credit_indicator, {"next_cursor": next_cursor})
+    end
+
+    def transaction_search(account_collection, start_datetime, end_datetime, debit_credit_indicator="ALL", next_cursor={})
       raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(WFTransactionDetail::AccountCollection)
       transaction_search_uri = @base_uri
       transaction_search_path = '/treasury/transaction-reporting/v3/transactions/search'
@@ -115,6 +120,7 @@ module WFTransactionDetail
         "limit" => transaction_limit,
       }
       payload.merge!(account_collection.as_json)
+      payload.merge!(next_cursor) unless next_cursor.empty?
       request = Net::HTTP::Post.new(transaction_search_uri)
       request = add_required_headers(request)
       request['Content-Type'] = 'application/json'
