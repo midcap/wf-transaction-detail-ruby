@@ -92,11 +92,11 @@ describe WFTransactionDetail::Client do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
-      expect{ client.next_page(
+      expect{ client.transaction_search(
         accounts,
         start_datetime,
         end_datetime,
-        next_cursor="123415t"
+        next_cursor:"123415t"
       ) }.to raise_error(ArgumentError)
     end
   end
