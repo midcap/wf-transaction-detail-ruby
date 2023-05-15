@@ -69,6 +69,20 @@ RSpec.configure do |config|
             to_return(status: 200, body: get_json_mock("transaction_detail_response_valid.json"), headers: {})
     stub_request(:post, "https://api-sandbox.wellsfargo.com/treasury/transaction-reporting/v3/transactions/search").
         with(
+            body: get_json_mock("transaction_detail_request_valid_with_no_transactions.json"),
+            headers: {
+                'Accept' => '*/*',
+                'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                'Authorization' => 'Bearer bogustogus',
+                'Content-Type' => 'application/json',
+                'Client-Request-Id' => 'bogus-request-id',
+                'Gateway-Entity-Id' => 'bogus-entity-id',
+                'Host' => 'api-sandbox.wellsfargo.com',
+                'User-Agent' => 'Ruby'
+            }).
+            to_return(status: 200, body: get_json_mock("transaction_detail_response_valid_with_no_transactions.json"), headers: {})
+    stub_request(:post, "https://api-sandbox.wellsfargo.com/treasury/transaction-reporting/v3/transactions/search").
+        with(
             body: get_json_mock("transaction_detail_request_with_next_cursor_valid.json"),
             headers: {
                 'Accept' => '*/*',

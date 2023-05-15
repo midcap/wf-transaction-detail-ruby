@@ -110,6 +110,18 @@ describe WFTransactionDetail::Client do
       )
       expect(collection.next_cursor).to be(nil)
     end
+
+    it 'returns nil for next_cursor when no transactions' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      start_datetime = DateTime.new(2019,9,11,0,0,0)
+      end_datetime = DateTime.new(2019,9,11,0,0,01)
+      collection = client.transaction_search(
+        accounts,
+        start_datetime,
+        end_datetime,
+      )
+      expect(collection.next_cursor).to be(nil)
+    end
   end
 end
 
