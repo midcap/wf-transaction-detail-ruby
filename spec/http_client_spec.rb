@@ -66,7 +66,6 @@ describe WFTransactionDetail::Client do
       allow(ENV).to receive(:[]).with("WF_GATEWAY_CONSUMER_KEY").and_return("invalid")
       allow(ENV).to receive(:[]).with("WF_GATEWAY_CONSUMER_SECRET").and_return("invalid")
       allow(ENV).to receive(:[]).with("WF_MAX_RETRIES").and_return(0)
-      client = WFTransactionDetail::Client.new()
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
@@ -99,6 +98,7 @@ describe WFTransactionDetail::Client do
         next_cursor:"123415t"
       ) }.to raise_error(ArgumentError)
     end
+
     it 'returns nil for next_cursor when not present' do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)

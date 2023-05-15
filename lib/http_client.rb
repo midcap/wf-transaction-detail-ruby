@@ -1,6 +1,7 @@
 require 'net/http'
 require 'securerandom'
 require 'uri'
+require 'logger'
 require 'active_support/core_ext/object/blank.rb'
 
 module WFTransactionDetail
@@ -35,6 +36,7 @@ module WFTransactionDetail
         'cert' => cert,
         'key' => key
       })
+      @logger = Logger.new(STDOUT)
       @max_retries = ENV[MAX_RETRIES].blank? ? 5 : ENV[MAX_RETRIES]
       @scope = scope
       @base_uri = URI(uri)
@@ -131,7 +133,7 @@ module WFTransactionDetail
       ])
       collection
     rescue HTTPError => e
-      Rails.logger.debug "(#{request['client-request-id']}) requesting transactions from Wells Fargo: #{payload}"
+      @logger.debug "(#{request['client-request-id']}) requesting transactions from Wells Fargo: #{payload}"
       raise e
     end
 

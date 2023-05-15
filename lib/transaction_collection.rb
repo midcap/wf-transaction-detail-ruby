@@ -84,11 +84,13 @@ module WFTransactionDetail
     end
 
     def next_cursor
-      @data[:paging]["next_cursor"]
+      return @data[:paging]["next_cursor"] if @data[:paging]
+      nil
     end
 
     def prev_cursor
-      @data[:paging]["previous_cursor"]
+      return @data[:paging]["previous_cursor"] if @data[:paging]
+      nil
     end
 
     private
