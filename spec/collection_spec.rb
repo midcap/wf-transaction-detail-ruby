@@ -30,6 +30,12 @@ describe 'TransactionCollection' do
       expect(tc.prev_cursor).to eq("a488ce6e-54dc-4207-93fb-8444acae07ea10")
     end
 
+    it 'cursor methods return nil when no cursors are found' do
+      tc2 = JSON.parse(wf_json_2, object_class: WFTransactionDetail::Collection, create_additions: true)
+      expect(tc2.next_cursor).to be_nil
+      expect(tc2.prev_cursor).to be_nil
+    end
+
     it 'can convert account to hash' do
       expected = {:bank_id=>"091000019", :account_number=>"10000111111", :account_type=>"DEMAND_DEPOSIT", :account_name=>"QUALITY LIFE MUSSMAN CO", :currency_code=>"USD", :transaction_count=>10, :transactions=>[{"posting_date"=>"2019-06-04", "value_date"=>"2019-06-04", "transaction_datetime"=>"2019-06-04 03:12:00Z", "debit_credit_indicator"=>"DEBIT", "transaction_type"=>"CHECK", "bai_type_code"=>"045", "transaction_description"=>"BANK ORIGINATED DEBIT FR 0000007186 THE SHERWIN-WILLIAMS COMPANY SUB ACCT 000004944938950", "transaction_amount"=>224.43, "zero_day_float"=>0, "one_day_float"=>0, "two_date_float"=>0, "check_number"=>"0000", "bank_reference"=>"082300000022", "transaction_status"=>"POSTED"}, {"posting_date"=>"2019-06-04", "value_date"=>"2019-06-04", "transaction_datetime"=>"2019-06-04 02:12:00Z", "debit_credit_indicator"=>"DEBIT", "transaction_type"=>"CHECK", "bai_type_code"=>"045", "transaction_description"=>"BANK ORIGINATED DEBIT FR 0000007186 THE SHERWIN-WILLIAMS COMPANY SUB ACCT 000004944938950", "transaction_amount"=>224.43, "zero_day_float"=>0, "one_day_float"=>0, "two_date_float"=>0, "check_number"=>"0000", "bank_reference"=>"082300000022", "transaction_status"=>"POSTED"}]}
       acct_num = tc.list_accounts[0]
