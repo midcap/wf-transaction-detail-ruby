@@ -52,7 +52,7 @@ module WFTransactionDetail
       token_uri.path = ENV[TOKEN_PATH].blank? ? '/oauth2/v1/token' : ENV[TOKEN_PATH]
       token_uri.query = URI.encode_www_form({
         grant_type: 'client_credentials',
-        scope: URI.escape(@scope),
+        scope: CGI.escape(@scope),
       })
       http = Net::HTTP.new(token_uri.host, token_uri.port)
       http.use_ssl = true
