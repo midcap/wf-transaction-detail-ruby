@@ -40,10 +40,13 @@ describe WFTransactionDetail::Client do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
+      datetime_range = {
+        'start_datetime' => start_datetime,
+        'end_datetime' => end_datetime
+      }
       transaction_detail = client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        datetime_range: datetime_range
       )
 
       expect(transaction_detail.transactions(2222222222).length).to eq(3)
@@ -69,10 +72,13 @@ describe WFTransactionDetail::Client do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
+      datetime_range = {
+        'start_datetime' => start_datetime,
+        'end_datetime' => end_datetime
+      }
       expect{ client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        datetime_range: datetime_range
       ) }.to raise_error(WFTransactionDetail::HTTPError, "Unauthorized")
     end
 
@@ -80,10 +86,13 @@ describe WFTransactionDetail::Client do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,18,23,59,59)
+      datetime_range = {
+        'start_datetime' => start_datetime,
+        'end_datetime' => end_datetime
+      }
       expect{ client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        datetime_range: datetime_range
       ) }.to raise_error(WFTransactionDetail::HTTPError, /\{"errors":\[\{"error_code":"1018-011","description"/)
     end
 
@@ -91,10 +100,13 @@ describe WFTransactionDetail::Client do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
+      datetime_range = {
+        'start_datetime' => start_datetime,
+        'end_datetime' => end_datetime
+      }
       expect{ client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        datetime_range: datetime_range,
         next_cursor:"123415t"
       ) }.to raise_error(ArgumentError)
     end
@@ -103,10 +115,13 @@ describe WFTransactionDetail::Client do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
+      datetime_range = {
+        'start_datetime' => start_datetime,
+        'end_datetime' => end_datetime
+      }
       collection = client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        datetime_range: datetime_range
       )
       expect(collection.next_cursor).to be(nil)
     end
@@ -115,13 +130,100 @@ describe WFTransactionDetail::Client do
       accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,0,0,01)
+      datetime_range = {
+        'start_datetime' => start_datetime,
+        'end_datetime' => end_datetime
+      }
       collection = client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        datetime_range: datetime_range
       )
       expect(collection.next_cursor).to be(nil)
     end
+
+    it 'sets transaction_type_list in the payload if transaction_types are provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      date = Date.new(2019,9,11)
+      date_range = {
+        'start_date' => date,
+        'end_date' => date
+      }
+      collection = client.transaction_search(
+        account_collection: accounts,
+        date_range: date_range,
+        transaction_types: ['MISCELLANEOUS', 'ACH']
+      )
+      expect(collection.transactions(2222222222).length).to eq(3)
+    end
+
+    it 'returns an argument error if datetime_range and date_range are not provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      expect{ client.transaction_search(
+        account_collection: accounts
+      ) }.to raise_error(ArgumentError)
+    end
+
+    it 'returns an argument error if both datetime_range and date_range are provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      date_range = {
+        'start_date' => Date.new(2019,9,11),
+        'end_date' => Date.new(2019,9,11)
+      }
+      datetime_range = {
+        'start_datetime' => DateTime.new(2019,9,11,0,0,0),
+        'end_datetime' => DateTime.new(2019,9,11,0,0,0)
+      }
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        date_range: date_range,
+        datetime_range: datetime_range
+      ) }.to raise_error(ArgumentError)
+    end
+
+    it 'returns an argument error if a date_range is provided but start_date is not provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      date_range = {
+        'end_date' => Date.new(2019,9,11)
+      }
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        date_range: date_range
+      ) }.to raise_error(ArgumentError)
+    end
+
+    it 'returns an argument error if a date_range is provided but end_date is not provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      date_range = {
+        'start_date' => Date.new(2019,9,11)
+      }
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        date_range: date_range
+      ) }.to raise_error(ArgumentError)
+    end
+
+    it 'returns an argument error if a datetime_range is provided but end_datetime is not provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      date_range = {
+        'start_datetime' => DateTime.new(2019,9,11,0,0,0)
+      }
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        date_range: date_range
+      ) }.to raise_error(ArgumentError)
+    end
+
+    it 'returns an argument error if a datetime_range is provided but start_datetime is not provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      date_range = {
+        'end_datetime' => DateTime.new(2019,9,11,0,0,0)
+      }
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        date_range: date_range
+      ) }.to raise_error(ArgumentError)
+    end
+
   end
 end
 
