@@ -134,6 +134,20 @@ RSpec.configure do |config|
                 'User-Agent' => 'Ruby'
             }).
         to_return(status: 401, body: "Unauthorized", headers: {})
+    stub_request(:post, "https://api-sandbox.wellsfargo.com/treasury/transaction-reporting/v3/transactions/search").
+        with(
+            body: get_json_mock("transaction_detail_request_bad_transaction_type.json"),
+            headers: {
+                'Accept' => '*/*',
+                'Accept-Encoding' => 'gzip;q=1.0,deflate;q=0.6,identity;q=0.3',
+                'Authorization' => 'Bearer bogustogus',
+                'Content-Type' => 'application/json',
+                'Client-Request-Id' => 'bogus-request-id',
+                'Gateway-Entity-Id' => 'bogus-entity-id',
+                'Host' => 'api-sandbox.wellsfargo.com',
+                'User-Agent' => 'Ruby'
+            }).
+            to_return(status: 400, body: get_json_mock("transaction_detail_response_bad_transaction_type.json"), headers: {})
   end
 
   # This option will default to `:apply_to_host_groups` in RSpec 4 (and will

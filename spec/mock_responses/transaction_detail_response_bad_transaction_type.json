@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "error_code":"400-012",
+      "description":"\u0027transaction_type\u0027 contains an invalid value.",
+      "field_name":"transaction_type_list.0.transaction_type",
+      "field_value":"BOGUSSSS",
+      "api_specification_url":"https://developer.wellsfargo.com"
+    }
+  ]
+}

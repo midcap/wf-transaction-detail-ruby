@@ -97,8 +97,20 @@ module WFTransactionDetail
       SecureRandom.uuid
     end
 
-    def transaction_search(account_collection:, debit_credit_indicator:"ALL", datetime_range: nil, date_range: nil, next_cursor: nil, transaction_types: [])
-      raise ArgumentError, 'provide either a datetime_range or a date_range but not both' if (datetime_range && date_range) || (!datetime_range && !date_range)
+    # account_collection:     (required) WFTransactionDetail::AccountCollection
+    # debit_credit_indicator: available values are 'ALL', 'DEBIT', or 'CREDIT'
+    # transaction_mode:       (required) available values are 'intraday' or 'previous_day_composite'
+    # transaction_type:       specified when we want to narrow the search to a particular type.
+    #                         a list of transaction_types can be found here: https://developer.wellsfargo.com/documentation/api-references/account-transactions/v3/transaction-detail-api-ref-v3#transaction-types-and-bai-codes
+    #                         note: The start_datetime and end_datetime must be the current date if transaction_type is ACH, RTP or WIRE and transaction_field_name and transaction_field_value is provided in the request.
+    #                               (This method does not support transaction_field_name and transaction_field_value yet.)
+    # start_datetime:         (required) DateTime value
+    # end_datetime:           (required) DateTime value
+    # Wells Fargo docs for transactions/search - https://developer.wellsfargo.com/documentation/api-references/account-transactions/v3/transaction-detail-api-ref-v3#search-for-transactions
+    def transaction_search(account_collection:, debit_credit_indicator:"ALL", transaction_mode: nil, start_datetime: nil, end_datetime: nil, next_cursor: nil, transaction_types: [])
+      raise ArgumentError, 'transaction_mode required. accepted values are intraday or previous_day_composite' if !transaction_mode || !['intraday', 'previous_day_composite'].include?(transaction_mode)
+      raise ArgumentError, 'start_datetime needs to be a DateTime value' if !start_datetime || !start_datetime.is_a?(DateTime)
+      raise ArgumentError, 'end_datetime needs to be a DateTime value' if !end_datetime || !end_datetime.is_a?(DateTime)
       raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(WFTransactionDetail::AccountCollection)
       raise ArgumentError, "next_cursor is not valid" if next_cursor.present? && (!next_cursor.is_a?(String) || next_cursor.length < 37 || next_cursor.length > 43)
       transaction_search_uri = @base_uri
@@ -115,17 +127,21 @@ module WFTransactionDetail
         "debit_credit_indicator" => debit_credit_indicator,
         "limit" => transaction_limit,
       }
-      if datetime_range
-        raise ArgumentError, 'datetime_range should be a hash with start_datetime and end_datetime values' if !datetime_range.key?('start_datetime') || !datetime_range.key?('end_datetime')
+      start_value = nil
+      end_value = nil
+      if transaction_mode == 'intraday'
+        start_value = start_datetime.strftime(DATETIME_FORMAT)
+        end_value = end_datetime.strftime(DATETIME_FORMAT)
         payload['datetime_range'] = {
-          "start_transaction_datetime" => datetime_range['start_datetime'].strftime(DATETIME_FORMAT),
-          "end_transaction_datetime" => datetime_range['end_datetime'].strftime(DATETIME_FORMAT)
+          "start_transaction_datetime" => start_value,
+          "end_transaction_datetime" => end_value
         }
-      elsif date_range
-        raise ArgumentError, 'date_range should be a hash with start_date and end_date values' if !date_range.key?('start_date') || !date_range.key?('end_date')
+      elsif transaction_mode == 'previous_day_composite'
+        start_value = start_datetime.strftime(DATE_FORMAT)
+        end_value = end_datetime.strftime(DATE_FORMAT)
         payload['date_range'] = {
-          "start_posting_date" => date_range['start_date'].strftime(DATE_FORMAT),
-          "end_posting_date" => date_range['end_date'].strftime(DATE_FORMAT)
+          "start_posting_date" => start_value,
+          "end_posting_date" => end_value
         }
       end
       if !transaction_types.empty?
@@ -146,12 +162,10 @@ module WFTransactionDetail
       raise HTTPError.new(response) unless response.is_a? Net::HTTPOK
       collection = JSON.parse(response.read_body, object_class: WFTransactionDetail::Collection, create_additions: true)
       collection.add_client_request_id(request['client-request-id'])
-      if datetime_range
-        collection.add_client_request_datetime([
-          datetime_range['start_datetime'].strftime(DATETIME_FORMAT),
-          datetime_range['end_datetime'].strftime(DATETIME_FORMAT)
-        ])
-      end
+      collection.add_client_request_datetime([
+        start_value,
+        end_value
+      ])
       collection
     rescue HTTPError => e
       @logger.debug "(#{request['client-request-id']}) requesting transactions from Wells Fargo: #{payload}"
