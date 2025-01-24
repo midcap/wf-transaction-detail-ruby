@@ -19,6 +19,8 @@ module WFTransactionDetail
     MAX_RETRIES = 'WF_MAX_RETRIES'
     DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
     DATE_FORMAT = '%Y-%m-%d'
+    INTRADAY = 'intraday'
+    PREVIOUS_DAY_COMPOSITE = 'previous_day_composite'
 
     def initialize()
       uri = ENV[API_BASE_URL]
@@ -108,7 +110,7 @@ module WFTransactionDetail
     # end_datetime:           (required) DateTime value
     # Wells Fargo docs for transactions/search - https://developer.wellsfargo.com/documentation/api-references/account-transactions/v3/transaction-detail-api-ref-v3#search-for-transactions
     def transaction_search(account_collection:, debit_credit_indicator:"ALL", transaction_mode: nil, start_datetime: nil, end_datetime: nil, next_cursor: nil, transaction_types: [])
-      raise ArgumentError, 'transaction_mode required. accepted values are intraday or previous_day_composite' if !transaction_mode || !['intraday', 'previous_day_composite'].include?(transaction_mode)
+      raise ArgumentError, "transaction_mode required. accepted values are #{INTRADAY} or #{PREVIOUS_DAY_COMPOSITE}" if !transaction_mode || ![INTRADAY, PREVIOUS_DAY_COMPOSITE].include?(transaction_mode)
       raise ArgumentError, 'start_datetime needs to be a DateTime value' if !start_datetime || !start_datetime.is_a?(DateTime)
       raise ArgumentError, 'end_datetime needs to be a DateTime value' if !end_datetime || !end_datetime.is_a?(DateTime)
       raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(WFTransactionDetail::AccountCollection)
@@ -129,14 +131,14 @@ module WFTransactionDetail
       }
       start_value = nil
       end_value = nil
-      if transaction_mode == 'intraday'
+      if transaction_mode == INTRADAY
         start_value = start_datetime.strftime(DATETIME_FORMAT)
         end_value = end_datetime.strftime(DATETIME_FORMAT)
         payload['datetime_range'] = {
           "start_transaction_datetime" => start_value,
           "end_transaction_datetime" => end_value
         }
-      elsif transaction_mode == 'previous_day_composite'
+      elsif transaction_mode == PREVIOUS_DAY_COMPOSITE
         start_value = start_datetime.strftime(DATE_FORMAT)
         end_value = end_datetime.strftime(DATE_FORMAT)
         payload['date_range'] = {

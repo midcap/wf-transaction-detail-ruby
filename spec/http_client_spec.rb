@@ -42,7 +42,7 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       transaction_detail = client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'intraday',
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
         start_datetime: start_datetime,
         end_datetime: end_datetime
       )
@@ -72,7 +72,7 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       expect{ client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'intraday',
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
         start_datetime: start_datetime,
         end_datetime: end_datetime
       ) }.to raise_error(WFTransactionDetail::HTTPError, "Unauthorized")
@@ -84,7 +84,7 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,18,23,59,59)
       expect{ client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'intraday',
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
         start_datetime: start_datetime,
         end_datetime: end_datetime
       ) }.to raise_error(WFTransactionDetail::HTTPError, /\{"errors":\[\{"error_code":"1018-011","description"/)
@@ -96,7 +96,7 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       expect{ client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'intraday',
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
         start_datetime: start_datetime,
         end_datetime: end_datetime,
         next_cursor:"123415t"
@@ -109,7 +109,7 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       collection = client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'intraday',
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
         start_datetime: start_datetime,
         end_datetime: end_datetime
       )
@@ -122,7 +122,7 @@ describe WFTransactionDetail::Client do
       end_datetime = DateTime.new(2019,9,11,0,0,01)
       collection = client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'intraday',
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
         start_datetime: start_datetime,
         end_datetime: end_datetime
       )
@@ -134,7 +134,7 @@ describe WFTransactionDetail::Client do
       start_and_end_datetime = DateTime.new(2019,9,11,0,0,0)
       collection = client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'previous_day_composite',
+        transaction_mode: WFTransactionDetail::Client::PREVIOUS_DAY_COMPOSITE,
         start_datetime: start_and_end_datetime,
         end_datetime: start_and_end_datetime,
         transaction_types: ['MISCELLANEOUS', 'ACH']
@@ -157,7 +157,7 @@ describe WFTransactionDetail::Client do
       start_and_end_datetime = '2019-09-11'
       expect{ client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'previous_day_composite',
+        transaction_mode: WFTransactionDetail::Client::PREVIOUS_DAY_COMPOSITE,
         start_datetime: start_and_end_datetime,
         end_datetime: start_and_end_datetime
       ) }.to raise_error(ArgumentError)
@@ -168,7 +168,7 @@ describe WFTransactionDetail::Client do
       start_and_end_datetime = DateTime.new(2019,9,11,0,0,0)
       expect{ client.transaction_search(
         account_collection: accounts,
-        transaction_mode: 'previous_day_composite',
+        transaction_mode: WFTransactionDetail::Client::PREVIOUS_DAY_COMPOSITE,
         start_datetime: start_and_end_datetime,
         end_datetime: start_and_end_datetime,
         transaction_types: ['BOGUSSSS']
