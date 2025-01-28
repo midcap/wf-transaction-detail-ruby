@@ -18,6 +18,9 @@ module WFTransactionDetail
     CONSUMER_SECRET = 'WF_GATEWAY_CONSUMER_SECRET'
     MAX_RETRIES = 'WF_MAX_RETRIES'
     DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%SZ'
+    DATE_FORMAT = '%Y-%m-%d'
+    INTRADAY = 'intraday'
+    PREVIOUS_DAY_COMPOSITE = 'previous_day_composite'
 
     def initialize()
       uri = ENV[API_BASE_URL]
@@ -96,7 +99,20 @@ module WFTransactionDetail
       SecureRandom.uuid
     end
 
-    def transaction_search(account_collection, start_datetime, end_datetime, debit_credit_indicator="ALL", next_cursor: nil)
+    # account_collection:     (required) WFTransactionDetail::AccountCollection
+    # debit_credit_indicator: available values are 'ALL', 'DEBIT', or 'CREDIT'
+    # transaction_mode:       (required) available values are 'intraday' or 'previous_day_composite'
+    # transaction_type:       specified when we want to narrow the search to a particular type.
+    #                         a list of transaction_types can be found here: https://developer.wellsfargo.com/documentation/api-references/account-transactions/v3/transaction-detail-api-ref-v3#transaction-types-and-bai-codes
+    #                         note: The start_datetime and end_datetime must be the current date if transaction_type is ACH, RTP or WIRE and transaction_field_name and transaction_field_value is provided in the request.
+    #                               (This method does not support transaction_field_name and transaction_field_value yet.)
+    # start_datetime:         (required) DateTime value
+    # end_datetime:           (required) DateTime value
+    # Wells Fargo docs for transactions/search - https://developer.wellsfargo.com/documentation/api-references/account-transactions/v3/transaction-detail-api-ref-v3#search-for-transactions
+    def transaction_search(account_collection:, debit_credit_indicator:"ALL", transaction_mode: nil, start_datetime: nil, end_datetime: nil, next_cursor: nil, transaction_types: [])
+      raise ArgumentError, "transaction_mode required. accepted values are #{INTRADAY} or #{PREVIOUS_DAY_COMPOSITE}" if !transaction_mode || ![INTRADAY, PREVIOUS_DAY_COMPOSITE].include?(transaction_mode)
+      raise ArgumentError, 'start_datetime needs to be a DateTime value' if !start_datetime || !start_datetime.is_a?(DateTime)
+      raise ArgumentError, 'end_datetime needs to be a DateTime value' if !end_datetime || !end_datetime.is_a?(DateTime)
       raise TypeError, 'transaction_search expects an AccountCollection' unless account_collection.kind_of?(WFTransactionDetail::AccountCollection)
       raise ArgumentError, "next_cursor is not valid" if next_cursor.present? && (!next_cursor.is_a?(String) || next_cursor.length < 37 || next_cursor.length > 43)
       transaction_search_uri = @base_uri
@@ -110,26 +126,47 @@ module WFTransactionDetail
       http.cert = OpenSSL::X509::Certificate.new(@cert)
       http.key = OpenSSL::PKey::RSA.new(@key)
       payload = {
-        "datetime_range" => {
-          "start_transaction_datetime" => start_datetime.strftime(DATETIME_FORMAT),
-          "end_transaction_datetime" => end_datetime.strftime(DATETIME_FORMAT)
-        },
         "debit_credit_indicator" => debit_credit_indicator,
         "limit" => transaction_limit,
       }
+      start_value = nil
+      end_value = nil
+      if transaction_mode == INTRADAY
+        start_value = start_datetime.strftime(DATETIME_FORMAT)
+        end_value = end_datetime.strftime(DATETIME_FORMAT)
+        payload['datetime_range'] = {
+          "start_transaction_datetime" => start_value,
+          "end_transaction_datetime" => end_value
+        }
+      elsif transaction_mode == PREVIOUS_DAY_COMPOSITE
+        start_value = start_datetime.strftime(DATE_FORMAT)
+        end_value = end_datetime.strftime(DATE_FORMAT)
+        payload['date_range'] = {
+          "start_posting_date" => start_value,
+          "end_posting_date" => end_value
+        }
+      end
+      if !transaction_types.empty?
+        transaction_type_list = []
+        transaction_types.each do |type|
+          transaction_type_list << { "transaction_type" => type }
+        end
+        payload['transaction_type_list'] = transaction_type_list
+      end
       payload.merge!(account_collection.as_json)
       payload.merge!({"next_cursor": next_cursor}) if next_cursor.present?
       request = Net::HTTP::Post.new(transaction_search_uri)
       request = add_required_headers(request)
       request['Content-Type'] = 'application/json'
       request.body = payload.to_json
+
       response = http.request(request)
       raise HTTPError.new(response) unless response.is_a? Net::HTTPOK
       collection = JSON.parse(response.read_body, object_class: WFTransactionDetail::Collection, create_additions: true)
       collection.add_client_request_id(request['client-request-id'])
       collection.add_client_request_datetime([
-        start_datetime.strftime(DATETIME_FORMAT),
-        end_datetime.strftime(DATETIME_FORMAT)
+        start_value,
+        end_value
       ])
       collection
     rescue HTTPError => e

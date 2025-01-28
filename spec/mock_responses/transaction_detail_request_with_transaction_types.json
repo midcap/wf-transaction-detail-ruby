@@ -1,0 +1,26 @@
+{
+  "debit_credit_indicator": "ALL",
+  "limit": 100,
+  "date_range": {
+    "start_posting_date": "2019-09-11",
+    "end_posting_date": "2019-09-11"
+  },
+  "transaction_type_list": [
+        {
+            "transaction_type": "MISCELLANEOUS"
+        },
+        {
+            "transaction_type": "ACH"
+        }
+  ],
+  "accounts": [
+    {
+      "bank_id": "111111111",
+      "account_number": "2222222222"
+    },
+    {
+      "bank_id": "111111111",
+      "account_number": "3333333333"
+    }
+  ]
+}

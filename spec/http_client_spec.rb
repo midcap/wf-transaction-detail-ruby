@@ -41,9 +41,10 @@ describe WFTransactionDetail::Client do
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       transaction_detail = client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
+        start_datetime: start_datetime,
+        end_datetime: end_datetime
       )
 
       expect(transaction_detail.transactions(2222222222).length).to eq(3)
@@ -70,9 +71,10 @@ describe WFTransactionDetail::Client do
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       expect{ client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
+        start_datetime: start_datetime,
+        end_datetime: end_datetime
       ) }.to raise_error(WFTransactionDetail::HTTPError, "Unauthorized")
     end
 
@@ -81,9 +83,10 @@ describe WFTransactionDetail::Client do
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,18,23,59,59)
       expect{ client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
+        start_datetime: start_datetime,
+        end_datetime: end_datetime
       ) }.to raise_error(WFTransactionDetail::HTTPError, /\{"errors":\[\{"error_code":"1018-011","description"/)
     end
 
@@ -92,9 +95,10 @@ describe WFTransactionDetail::Client do
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       expect{ client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
+        start_datetime: start_datetime,
+        end_datetime: end_datetime,
         next_cursor:"123415t"
       ) }.to raise_error(ArgumentError)
     end
@@ -104,9 +108,10 @@ describe WFTransactionDetail::Client do
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,23,59,59)
       collection = client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
+        start_datetime: start_datetime,
+        end_datetime: end_datetime
       )
       expect(collection.next_cursor).to be(nil)
     end
@@ -116,12 +121,60 @@ describe WFTransactionDetail::Client do
       start_datetime = DateTime.new(2019,9,11,0,0,0)
       end_datetime = DateTime.new(2019,9,11,0,0,01)
       collection = client.transaction_search(
-        accounts,
-        start_datetime,
-        end_datetime,
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::INTRADAY,
+        start_datetime: start_datetime,
+        end_datetime: end_datetime
       )
       expect(collection.next_cursor).to be(nil)
     end
+
+    it 'sets transaction_type_list in the payload if transaction_types are provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      start_and_end_datetime = DateTime.new(2019,9,11,0,0,0)
+      collection = client.transaction_search(
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::PREVIOUS_DAY_COMPOSITE,
+        start_datetime: start_and_end_datetime,
+        end_datetime: start_and_end_datetime,
+        transaction_types: ['MISCELLANEOUS', 'ACH']
+      )
+      expect(collection.transactions(2222222222).length).to eq(3)
+    end
+
+    it 'returns an argument error if transaction_mode is not provided' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      start_and_end_datetime = DateTime.new(2019,9,11,0,0,0)
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        start_datetime: start_and_end_datetime,
+        end_datetime: start_and_end_datetime
+      ) }.to raise_error(ArgumentError)
+    end
+
+    it 'returns an argument error if start_datetime is not a DateTime' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      start_and_end_datetime = '2019-09-11'
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::PREVIOUS_DAY_COMPOSITE,
+        start_datetime: start_and_end_datetime,
+        end_datetime: start_and_end_datetime
+      ) }.to raise_error(ArgumentError)
+    end
+
+    it 'returns an http error when an invalid transaction type is used' do
+      accounts = WFTransactionDetail::AccountCollection.new("111111111", ["2222222222","3333333333"])
+      start_and_end_datetime = DateTime.new(2019,9,11,0,0,0)
+      expect{ client.transaction_search(
+        account_collection: accounts,
+        transaction_mode: WFTransactionDetail::Client::PREVIOUS_DAY_COMPOSITE,
+        start_datetime: start_and_end_datetime,
+        end_datetime: start_and_end_datetime,
+        transaction_types: ['BOGUSSSS']
+      ) }.to raise_error(WFTransactionDetail::HTTPError)
+    end
+
   end
 end
 
